@@ -1,0 +1,1636 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>포춘앤룰렛</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<style>
+  :root{
+    --bg:#14121f;
+    --bg-grad: radial-gradient(circle at 20% 0%, #241b3d 0%, #14121f 55%);
+    --surface:#1e1a2e;
+    --surface-2:#262138;
+    --surface-border: rgba(255,255,255,0.07);
+    --text:#f4f1fa;
+    --text-muted:#9c96b8;
+    --accent-a:#ff6b9d;
+    --accent-b:#7c5cff;
+    --accent-c:#5eead4;
+    --accent-d:#ffd166;
+    --grad-main: linear-gradient(135deg, var(--accent-a), var(--accent-b));
+    --grad-mint: linear-gradient(135deg, #5eead4, #38bdf8);
+    --grad-gold: linear-gradient(135deg, #ffd166, #ff8fab);
+    --radius: 22px;
+    --radius-sm: 14px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html,body{margin:0; padding:0;}
+  body{
+    background: var(--bg-grad);
+    color:var(--text);
+    font-family:'Pretendard', system-ui, sans-serif;
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+  #app{
+    max-width:480px;
+    margin:0 auto;
+    min-height:100vh;
+    padding:20px 18px 40px;
+    position:relative;
+  }
+  /* ---------- Header ---------- */
+  .topbar{
+    display:flex; align-items:center; gap:12px;
+    min-height:44px;
+    margin-bottom:6px;
+  }
+  .back-btn{
+    width:36px; height:36px; border-radius:50%;
+    background:var(--surface); border:1px solid var(--surface-border);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--text); font-size:18px; cursor:pointer;
+    flex-shrink:0;
+  }
+  .back-btn:active{ transform:scale(0.92); }
+  .topbar h1{
+    font-size:18px; font-weight:700; margin:0; letter-spacing:-0.01em;
+  }
+  .hidden{ display:none !important; }
+
+  /* ---------- Home ---------- */
+  .hero{
+    padding: 18px 4px 26px;
+  }
+  .eyebrow{
+    font-size:13px; color:var(--accent-c); font-weight:600;
+    letter-spacing:0.02em; margin-bottom:8px;
+  }
+  .hero h1{
+    font-size:30px; line-height:1.25; font-weight:800; margin:0 0 8px;
+    letter-spacing:-0.02em;
+  }
+  .hero p{
+    font-size:14.5px; color:var(--text-muted); margin:0; line-height:1.5;
+  }
+  .grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:12px;
+  }
+  .card{
+    background:var(--surface);
+    border:1px solid var(--surface-border);
+    border-radius:var(--radius);
+    padding:18px 16px;
+    cursor:pointer;
+    position:relative;
+    overflow:hidden;
+    transition:transform .15s ease;
+    min-height:132px;
+    display:flex; flex-direction:column; justify-content:space-between;
+  }
+  .card:active{ transform:scale(0.96); }
+  .card.wide{ grid-column: span 2; min-height:110px; flex-direction:row; align-items:center; }
+  .card .blob{
+    width:44px; height:44px; border-radius:14px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:22px;
+    margin-bottom:10px;
+  }
+  .card.wide .blob{ margin-bottom:0; margin-right:14px; }
+  .card .title{ font-size:15.5px; font-weight:700; }
+  .card .desc{ font-size:12px; color:var(--text-muted); margin-top:3px; }
+  .c1 .blob{ background:var(--grad-main); }
+  .c2 .blob{ background:var(--grad-gold); }
+  .c3 .blob{ background:var(--grad-mint); }
+  .c4 .blob{ background:linear-gradient(135deg,#a78bfa,#7c5cff); }
+  .c5 .blob{ background:linear-gradient(135deg,#ffd166,#fb7185); }
+  .c6 .blob{ background:linear-gradient(135deg,#38bdf8,#7c5cff); }
+  .c7 .blob{ background:linear-gradient(135deg,#fb7185,#ff6b9d); }
+
+  /* ---------- Screen shell ---------- */
+  .screen{ padding-top: 6px; }
+  .subtitle{ font-size:13.5px; color:var(--text-muted); margin: 2px 0 22px; line-height:1.5; }
+
+  /* ---------- Wheel ---------- */
+  .wheel-wrap{
+    position:relative;
+    width: 320px; height:320px;
+    margin: 10px auto 26px;
+  }
+  .wheel-wrap.small{
+    width:170px; height:170px;
+    margin: 4px auto 16px;
+  }
+  .wheel-wrap.small .pointer{
+    border-left-width:8px; border-right-width:8px; border-top-width:14px; top:-7px;
+  }
+  .pointer{
+    position:absolute; top:-10px; left:50%; transform:translateX(-50%);
+    width:0; height:0;
+    border-left:12px solid transparent;
+    border-right:12px solid transparent;
+    border-top:20px solid var(--accent-a);
+    z-index:5;
+    filter: drop-shadow(0 2px 6px rgba(255,107,157,0.5));
+  }
+  .wheel{
+    width:100%; height:100%; border-radius:50%;
+    position:relative;
+    display:flex; align-items:center; justify-content:center;
+    transition: transform 3.2s cubic-bezier(0.12,0.84,0.15,1);
+    box-shadow: 0 0 0 6px var(--surface), 0 0 0 7px var(--surface-border), 0 20px 50px rgba(124,92,255,0.35);
+  }
+  .wheel-center{
+    position:absolute; width:54px; height:54px; border-radius:50%;
+    background: var(--surface); border:2px solid var(--surface-border);
+    display:flex; align-items:center; justify-content:center;
+    font-size:20px; z-index:4;
+  }
+  .wheel.small .wheel-center{ width:32px; height:32px; font-size:13px; }
+  .seg-label{
+    position:absolute; top:0; left:0; width:100%; height:100%;
+    display:flex; justify-content:center;
+    transform-origin:50% 50%;
+    pointer-events:none;
+  }
+  .seg-label span{
+    display:inline-block;
+    font-family:'Pretendard', system-ui, sans-serif;
+    font-weight:800;
+    letter-spacing:-0.01em;
+    color:#181521;
+    white-space:nowrap;
+  }
+
+  .category-pick{
+    background:var(--surface);
+    border:1px solid var(--surface-border);
+    border-radius:var(--radius);
+    padding:16px 14px 6px;
+    text-align:center;
+    margin-bottom:16px;
+  }
+  .category-pick-label{
+    font-size:13.5px; font-weight:700; color:var(--text); margin-bottom:2px;
+  }
+  .category-pick .btn-secondary{ margin-top:2px; }
+  .divider-label{
+    display:flex; align-items:center; gap:10px;
+    font-size:12px; color:var(--text-muted);
+    margin: 4px 0 16px;
+  }
+  .divider-label::before, .divider-label::after{
+    content:''; flex:1; height:1px; background:var(--surface-border);
+  }
+  .app-footer{
+    text-align:center;
+    font-size:11.5px;
+    color:var(--text-muted);
+    opacity:0.6;
+    padding:24px 0 4px;
+  }
+
+  /* ---------- Buttons ---------- */
+  .btn-primary{
+    width:100%; padding:16px; border:none; border-radius:16px;
+    background:var(--grad-main); color:#14121f;
+    font-size:16px; font-weight:800; cursor:pointer;
+    letter-spacing:-0.01em;
+  }
+  .btn-primary:active{ transform:scale(0.98); }
+  .btn-primary:disabled{ opacity:0.5; }
+  .btn-secondary{
+    width:100%; padding:14px; border-radius:14px;
+    background:var(--surface); border:1px solid var(--surface-border);
+    color:var(--text); font-size:14.5px; font-weight:600; cursor:pointer;
+    margin-top:10px;
+  }
+  .chip-row{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px; }
+  .chip{
+    padding:9px 14px; border-radius:999px; font-size:13.5px; font-weight:600;
+    background:var(--surface); border:1px solid var(--surface-border); color:var(--text-muted);
+    cursor:pointer;
+  }
+  .chip.active{ background:var(--grad-main); color:#14121f; border-color:transparent; }
+
+  /* ---------- Result card ---------- */
+  .result-card{
+    background:var(--surface-2);
+    border:1px solid var(--surface-border);
+    border-radius:var(--radius);
+    padding:26px 20px;
+    text-align:center;
+    margin-bottom:18px;
+    display:none;
+  }
+  .result-card.show{ display:block; animation: pop .4s cubic-bezier(.2,1.4,.4,1); }
+  @keyframes pop{ from{ transform:scale(0.85); opacity:0; } to{ transform:scale(1); opacity:1; } }
+  .result-emoji{ font-size:38px; margin-bottom:8px; }
+  .result-main{ font-size:21px; font-weight:800; margin-bottom:6px; letter-spacing:-0.01em; }
+  .result-sub{ font-size:14px; color:var(--text-muted); line-height:1.5; }
+
+  /* Name input for N-person roulette */
+  .name-inputs{ display:flex; flex-direction:column; gap:10px; margin-bottom:18px; }
+  .name-input-row{ display:flex; align-items:center; gap:10px; }
+  .name-input-row input{
+    flex:1; padding:13px 14px; border-radius:12px;
+    background:var(--surface); border:1px solid var(--surface-border);
+    color:var(--text); font-size:15px; font-family:inherit;
+  }
+  .name-input-row input:focus{ outline:none; border-color:var(--accent-b); }
+  .swatch{ width:14px; height:14px; border-radius:4px; flex-shrink:0; }
+
+  .advanced-toggle{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:12px 14px; background:var(--surface); border-radius:14px;
+    border:1px solid var(--surface-border); margin-bottom:14px; cursor:pointer;
+    font-size:13.5px; color:var(--text-muted);
+  }
+  .switch{
+    width:38px; height:22px; border-radius:999px; background:var(--surface-border);
+    position:relative; transition:background .2s;
+  }
+  .switch.on{ background:var(--grad-main); }
+  .switch::after{
+    content:''; position:absolute; top:2px; left:2px; width:18px; height:18px;
+    border-radius:50%; background:#fff; transition:transform .2s;
+  }
+  .switch.on::after{ transform:translateX(16px); }
+
+  .weight-panel{ margin-bottom:16px; }
+  .weight-row{ display:flex; align-items:center; gap:10px; margin-bottom:10px; font-size:13.5px; }
+  .weight-row .wname{ width:64px; flex-shrink:0; color:var(--text-muted); }
+  .weight-row input[type=range]{ flex:1; accent-color: var(--accent-b); }
+  .weight-row .wval{ width:28px; text-align:right; font-weight:700; color:var(--accent-c); }
+
+  .history{ margin-top:22px; }
+  .history-title{ font-size:12.5px; color:var(--text-muted); margin-bottom:8px; font-weight:600; }
+  .history-list{ display:flex; flex-direction:column; gap:6px; }
+  .history-item{
+    font-size:13px; color:var(--text-muted); background:var(--surface);
+    padding:9px 12px; border-radius:10px; border:1px solid var(--surface-border);
+  }
+
+  .coin{
+    width:140px; height:140px; margin: 10px auto 26px;
+    border-radius:50%;
+    background: var(--grad-gold);
+    display:flex; align-items:center; justify-content:center;
+    font-size:44px; font-weight:900; color:#14121f;
+    box-shadow: 0 20px 50px rgba(255,209,102,0.3);
+  }
+  .coin.spinning{ animation: flip 1.1s ease-in-out; }
+  @keyframes flip{
+    0%{ transform: rotateY(0deg) scale(1); }
+    50%{ transform: rotateY(900deg) scale(1.05); }
+    100%{ transform: rotateY(1800deg) scale(1); }
+  }
+
+  .fortune-card{
+    background: linear-gradient(160deg, #2a2340, #1e1a2e 60%);
+    border:1px solid rgba(255,209,102,0.25);
+    border-radius: var(--radius);
+    padding: 30px 22px;
+    text-align:center;
+    margin-bottom:18px;
+  }
+  .fortune-card .tag{
+    display:inline-block; padding:4px 12px; border-radius:999px;
+    background:rgba(255,209,102,0.12); color:var(--accent-d);
+    font-size:11.5px; font-weight:700; letter-spacing:0.03em; margin-bottom:14px;
+  }
+  .fortune-card .line{ font-size:20px; font-weight:800; line-height:1.6; position:relative; z-index:2; }
+  .fortune-card .line b{ color: var(--accent-c); }
+  .fortune-card .tag{ position:relative; z-index:2; }
+  .fortune-card{ position:relative; overflow:hidden; }
+  .fortune-stars{ position:absolute; inset:0; z-index:1; pointer-events:none; }
+  .fortune-star{
+    position:absolute; border-radius:50%;
+    background:#ffd166;
+    box-shadow:0 0 6px 1px rgba(255,209,102,0.8);
+    animation: twinkle 2.2s ease-in-out infinite;
+  }
+  @keyframes twinkle{
+    0%, 100% { opacity:0.15; transform:scale(0.7); }
+    50% { opacity:1; transform:scale(1.15); }
+  }
+  .zodiac-symbol{ font-size:34px; display:block; margin-bottom:6px; color:var(--accent-d); }
+
+  /* ---------- Free roulette stepper ---------- */
+  .stepper{
+    display:flex; align-items:center; gap:14px;
+    background:var(--surface); border:1px solid var(--surface-border);
+    border-radius:16px; padding:14px 18px; margin-bottom:18px;
+  }
+  .stepper .step-btn{
+    width:38px; height:38px; border-radius:50%; border:none;
+    background:var(--grad-main); color:#14121f; font-size:19px; font-weight:800;
+    cursor:pointer; flex-shrink:0;
+  }
+  .stepper .step-btn:active{ transform:scale(0.9); }
+  .stepper .step-count{ font-size:16px; font-weight:800; flex:1; text-align:center; }
+  .stepper .step-hint{ font-size:12px; color:var(--text-muted); }
+
+  /* ---------- Finger tap ---------- */
+  .finger-area{
+    position:relative;
+    width:100%; height:360px;
+    background:var(--surface);
+    border:1px solid var(--surface-border);
+    border-radius:var(--radius);
+    margin-bottom:18px;
+    touch-action:none;
+  }
+  .finger-hint{
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    text-align:center; color:var(--text-muted); font-size:14px; line-height:1.6;
+    width:80%;
+    pointer-events:none;
+  }
+  .finger-count-badge{
+    position:absolute; top:14px; left:14px;
+    background:rgba(0,0,0,0.3); padding:6px 12px; border-radius:999px;
+    font-size:12.5px; font-weight:700; color:var(--accent-c);
+  }
+  .finger-dot{
+    position:absolute;
+    width:56px; height:56px; border-radius:50%;
+    background:var(--grad-main);
+    display:flex; align-items:center; justify-content:center;
+    font-size:20px; font-weight:800; color:#14121f;
+    box-shadow: 0 8px 20px rgba(124,92,255,0.4);
+    flex-shrink:0;
+    transform:translate(-50%,-50%);
+  }
+  .finger-dot.winner{
+    animation: fingerWin 0.9s ease-in-out infinite alternate;
+    background: var(--grad-gold);
+    z-index:3;
+  }
+  @keyframes fingerWin{
+    from{ transform:translate(-50%,-50%) scale(1); box-shadow:0 0 0 0 rgba(255,209,102,0.5); }
+    to{ transform:translate(-50%,-50%) scale(1.25); box-shadow:0 0 0 18px rgba(255,209,102,0); }
+  }
+  .finger-countdown{
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    font-size:52px; font-weight:900; color:var(--text);
+    pointer-events:none; text-shadow:0 4px 20px rgba(124,92,255,0.6);
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ===================== HOME ===================== -->
+  <section id="screen-home" class="screen">
+    <div class="hero">
+      <div class="eyebrow">포춘앤룰렛</div>
+      <h1>고민은 넣어두고<br/>돌려서 정하기</h1>
+      <p>결정장애 해결부터 벌칙 뽑기까지, 7가지 방법으로 끝내요.</p>
+    </div>
+    <div class="grid">
+      <div class="card wide c5" onclick="go('fortune')">
+        <div class="blob">🔮</div>
+        <div>
+          <div class="title">전생 알아보기</div>
+          <div class="desc">당신의 전생을 확인해보세요</div>
+        </div>
+      </div>
+      <div class="card c7" onclick="go('finger')">
+        <div class="blob">👆</div>
+        <div>
+          <div class="title">손가락 지목</div>
+          <div class="desc">다같이 손가락 올려 뽑기</div>
+        </div>
+      </div>
+      <div class="card c2" onclick="go('food')">
+        <div class="blob">🍜</div>
+        <div>
+          <div class="title">뭐 먹을까</div>
+          <div class="desc">메뉴 랜덤 추천</div>
+        </div>
+      </div>
+      <div class="card c3" onclick="go('people')">
+        <div class="blob">👥</div>
+        <div>
+          <div class="title">인원 룰렛</div>
+          <div class="desc">2~12인 이름 뽑기</div>
+        </div>
+      </div>
+      <div class="card c4" onclick="go('truth')">
+        <div class="blob">🎭</div>
+        <div>
+          <div class="title">진실 or 거짓</div>
+          <div class="desc">질문 또는 미션</div>
+        </div>
+      </div>
+      <div class="card c6" onclick="go('free')">
+        <div class="blob">✏️</div>
+        <div>
+          <div class="title">자유 룰렛</div>
+          <div class="desc">칸 수·내용 직접 설정</div>
+        </div>
+      </div>
+      <div class="card c1" onclick="go('yesno')">
+        <div class="blob">🎲</div>
+        <div>
+          <div class="title">예스 or 노</div>
+          <div class="desc">고민 끝, 바로 결정</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== YES / NO ===================== -->
+  <section id="screen-yesno" class="screen hidden">
+    <div class="topbar"><div class="back-btn" onclick="go('home')">‹</div><h1>예스 or 노</h1></div>
+    <p class="subtitle">고민되는 질문을 마음속으로 떠올리고 돌려보세요.</p>
+    <div class="wheel-wrap">
+      <div class="pointer"></div>
+      <div class="wheel" id="wheel-yesno"></div>
+    </div>
+    <div class="result-card" id="result-yesno">
+      <div class="result-emoji" id="yesno-emoji">✨</div>
+      <div class="result-main" id="yesno-main"></div>
+      <div class="result-sub" id="yesno-sub"></div>
+    </div>
+    <button class="btn-primary" id="btn-yesno" onclick="spinYesNo()">돌리기</button>
+    <div class="history" id="history-yesno-wrap" style="display:none">
+      <div class="history-title">최근 결과</div>
+      <div class="history-list" id="history-yesno"></div>
+    </div>
+  </section>
+
+  <!-- ===================== FOOD ===================== -->
+  <section id="screen-food" class="screen hidden">
+    <div class="topbar"><div class="back-btn" onclick="go('home')">‹</div><h1>뭐 먹을까</h1></div>
+    <p class="subtitle">종류부터 룰렛으로 정하거나, 바로 카테고리를 골라 메뉴를 돌려보세요.</p>
+
+    <div class="category-pick">
+      <div class="category-pick-label">뭐부터 먹을지도 모르겠다면?</div>
+      <div class="wheel-wrap small">
+        <div class="pointer"></div>
+        <div class="wheel small" id="wheel-food-category"></div>
+      </div>
+      <button class="btn-secondary" id="btn-food-category" onclick="spinFoodCategory()">종류 룰렛 먼저 돌리기</button>
+    </div>
+    <div class="divider-label">또는 바로 아래에서 골라요</div>
+
+    <div class="chip-row" id="food-chips"></div>
+    <div class="wheel-wrap">
+      <div class="pointer"></div>
+      <div class="wheel" id="wheel-food"></div>
+    </div>
+    <div class="result-card" id="result-food">
+      <div class="result-emoji">🍽️</div>
+      <div class="result-main" id="food-main"></div>
+      <div class="result-sub" id="food-sub"></div>
+    </div>
+    <button class="btn-primary" id="btn-food" onclick="spinFood()">돌리기</button>
+  </section>
+
+  <!-- ===================== PEOPLE ROULETTE ===================== -->
+  <section id="screen-people" class="screen hidden">
+    <div class="topbar"><div class="back-btn" onclick="go('home')">‹</div><h1>인원 룰렛</h1></div>
+    <p class="subtitle">인원 수를 정하고 이름을 넣으면 한 명이 뽑혀요.</p>
+    <div class="stepper">
+      <button class="step-btn" onclick="changePeopleCount(-1)">−</button>
+      <div>
+        <div class="step-count" id="people-count-label">2명</div>
+        <div class="step-hint">2명 ~ 12명까지 설정 가능</div>
+      </div>
+      <button class="step-btn" onclick="changePeopleCount(1)">+</button>
+    </div>
+    <div class="name-inputs" id="name-inputs"></div>
+
+    <div class="wheel-wrap">
+      <div class="pointer"></div>
+      <div class="wheel" id="wheel-people"></div>
+    </div>
+    <div class="result-card" id="result-people">
+      <div class="result-emoji">🎉</div>
+      <div class="result-main" id="people-main"></div>
+      <div class="result-sub" id="people-sub"></div>
+    </div>
+    <button class="btn-primary" id="btn-people" onclick="spinPeople()">돌리기</button>
+    <div class="history" id="history-people-wrap" style="display:none">
+      <div class="history-title">이번 세션 기록</div>
+      <div class="history-list" id="history-people"></div>
+    </div>
+  </section>
+
+  <!-- ===================== TRUTH OR DARE ===================== -->
+  <section id="screen-truth" class="screen hidden">
+    <div class="topbar"><div class="back-btn" onclick="go('home')">‹</div><h1>진실 or 거짓</h1></div>
+    <p class="subtitle">동전을 던져 진실 질문 또는 미션(거짓)을 받아요.</p>
+    <div class="coin" id="coin">?</div>
+    <div class="result-card" id="result-truth">
+      <div class="result-main" id="truth-main"></div>
+      <div class="result-sub" id="truth-sub"></div>
+    </div>
+    <button class="btn-primary" id="btn-truth" onclick="spinTruth()">동전 던지기</button>
+  </section>
+
+  <!-- ===================== FORTUNE ===================== -->
+  <section id="screen-fortune" class="screen hidden">
+    <div class="topbar"><div class="back-btn" onclick="go('home')">‹</div><h1>전생 알아보기</h1></div>
+    <p class="subtitle">인간에게는 네 번의 생이 있다고 전해집니다 — 씨를 뿌리는 생, 물을 주는 생, 수확하는 생, 수확한 것을 쓰는 생. 다만 아주 드물게, 다섯 번째 생을 사는 사람도 있다는 말이 있습니다. 태어난 날짜와 시간을 알려주시면, 지금 당신이 몇 번째 생을 살고 있는지 알려드릴게요.</p>
+    <div class="name-inputs" style="margin-bottom:8px;">
+      <div class="name-input-row"><input type="date" id="fortune-birth"></div>
+      <div class="name-input-row"><input type="time" id="fortune-time"></div>
+    </div>
+    <label style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-muted); margin:-4px 0 14px 2px;">
+      <input type="checkbox" id="fortune-time-unknown" onchange="toggleFortuneTimeUnknown()"> 태어난 시간을 몰라요
+    </label>
+    <div class="name-inputs" style="margin-bottom:16px;">
+      <div class="name-input-row"><input type="text" id="fortune-hometown" placeholder="고향 (선택)"></div>
+    </div>
+    <div class="fortune-card" id="fortune-card">
+      <div class="fortune-stars" id="fortune-stars"></div>
+      <div class="tag">전생 감정 결과</div>
+      <div class="line" id="fortune-line">생년월일을 넣고 버튼을 눌러보세요</div>
+    </div>
+    <button class="btn-primary" onclick="spinFortune()">전생 알아보기</button>
+    <button class="btn-secondary hidden" id="btn-fortune-save" onclick="downloadFortuneCardImage()">이미지로 저장</button>
+
+    <div class="advanced-toggle" onclick="toggleCompat()">
+      <span>친구·연인과 생의 궁합 보기</span>
+      <div class="switch" id="compat-switch"></div>
+    </div>
+    <div class="weight-panel hidden" id="compat-panel">
+      <div class="name-inputs" style="margin-bottom:12px;">
+        <div class="name-input-row"><input type="date" id="compat-birth"></div>
+      </div>
+      <button class="btn-secondary" onclick="checkCompat()">궁합 확인하기</button>
+      <div class="result-card" id="compat-result-card">
+        <div class="result-emoji">💫</div>
+        <div class="result-main" id="compat-result"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== FREE ROULETTE ===================== -->
+  <section id="screen-free" class="screen hidden">
+    <div class="topbar"><div class="back-btn" onclick="go('home')">‹</div><h1>자유 룰렛</h1></div>
+    <p class="subtitle">칸 수를 정하고 내용을 직접 입력해서 나만의 룰렛을 만들어요.</p>
+    <div class="stepper">
+      <button class="step-btn" onclick="changeFreeCount(-1)">−</button>
+      <div>
+        <div class="step-count" id="free-count-label">4칸</div>
+        <div class="step-hint">2개 ~ 12개까지 설정 가능</div>
+      </div>
+      <button class="step-btn" onclick="changeFreeCount(1)">+</button>
+    </div>
+    <div class="name-inputs" id="free-inputs"></div>
+    <div class="wheel-wrap">
+      <div class="pointer"></div>
+      <div class="wheel" id="wheel-free"></div>
+    </div>
+    <div class="result-card" id="result-free">
+      <div class="result-emoji">🎯</div>
+      <div class="result-main" id="free-main"></div>
+      <div class="result-sub">룰렛이 고른 결과예요</div>
+    </div>
+    <button class="btn-primary" id="btn-free" onclick="spinFree()">돌리기</button>
+  </section>
+
+  <!-- ===================== FINGER TAP PICK ===================== -->
+  <section id="screen-finger" class="screen hidden">
+    <div class="topbar"><div class="back-btn" onclick="go('home')">‹</div><h1>손가락 지목</h1></div>
+    <p class="subtitle">아래 영역에 다같이 손가락을 올리고 시작 버튼을 눌러보세요.</p>
+    <div class="finger-area" id="finger-area">
+      <div class="finger-count-badge" id="finger-count-badge">0명 인식됨</div>
+      <div class="finger-hint" id="finger-hint">여기에 손가락을<br/>다같이 올려주세요</div>
+    </div>
+    <div class="result-card" id="result-finger">
+      <div class="result-emoji">👆</div>
+      <div class="result-main" id="finger-main"></div>
+      <div class="result-sub">지목된 손가락이 반짝여요</div>
+    </div>
+    <p class="result-sub" style="text-align:center; margin-bottom:10px;">2명 이상 손가락을 올리고 3초간 가만히 있으면 자동으로 지목돼요</p>
+  </section>
+
+  <div class="app-footer">© 2026 박내연. All rights reserved.</div>
+
+</div>
+
+<script>
+/* ---------------- Navigation ---------------- */
+function go(name){
+  document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+  document.getElementById('screen-' + name).classList.remove('hidden');
+  window.scrollTo(0,0);
+  // rebuild the relevant wheel now that its screen is actually visible,
+  // so text-width measurements used for centering are accurate
+  if (name === 'yesno') buildWheel(document.getElementById('wheel-yesno'), yesnoLabels);
+  if (name === 'food') {
+    buildWheel(document.getElementById('wheel-food'), foodData[currentFoodCat]);
+    buildWheel(document.getElementById('wheel-food-category'), foodCategories);
+  }
+  if (name === 'people') updatePeopleWheelPreview();
+  if (name === 'free') updateFreeWheelPreview();
+}
+
+const wheelColors = ['#ff6b9d','#7c5cff','#5eead4','#ffd166','#a78bfa','#fb7185','#38bdf8','#f472b6'];
+
+function buildWheel(el, labels){
+  el.innerHTML = '';
+  const n = labels.length;
+  const slice = 360 / n;
+  const gradStops = labels.map((l,i) => {
+    const c = wheelColors[i % wheelColors.length];
+    return `${c} ${i*slice}deg ${(i+1)*slice}deg`;
+  }).join(', ');
+  el.style.background = `conic-gradient(${gradStops})`;
+  const center = document.createElement('div');
+  center.className = 'wheel-center';
+  center.textContent = '🎯';
+  el.appendChild(center);
+
+  const isSmall = el.classList.contains('small');
+  const wheelR = isSmall ? 85 : 160;
+  const radius = isSmall ? Math.min(70, 45 + n * 0.9) : Math.min(150, 95 + n * 2.2);
+  const marginTop = wheelR - radius; // distance inward from the rim
+  const arcPerSlice = (2 * Math.PI * radius) / n;
+  const safeWidth = arcPerSlice / 1.45; // safety margin so neighboring labels never touch
+  const fontSizeNum = isSmall ? 9 : (n > 20 ? 9.5 : (n > 14 ? 11 : (n > 8 ? 12.5 : 14)));
+
+  labels.forEach((l,i) => {
+    const angle = slice*i + slice/2;
+    const wrap = document.createElement('div');
+    wrap.className = 'seg-label';
+    wrap.style.transform = `rotate(${angle}deg)`;
+    const span = document.createElement('span');
+    span.style.fontSize = fontSizeNum + 'px';
+    span.style.marginTop = marginTop + 'px';
+    let text = l;
+    span.textContent = text;
+    wrap.appendChild(span);
+    el.appendChild(wrap);
+
+    let width = span.offsetWidth;
+    if (!width) {
+      // not measurable yet (screen currently hidden) - estimate instead
+      width = text.length * fontSizeNum * 1.05;
+      while (width > safeWidth && text.length > 1) {
+        text = text.slice(0, -1);
+        width = text.length * fontSizeNum * 1.05;
+      }
+      span.textContent = text;
+    } else {
+      while (width > safeWidth && text.length > 1) {
+        text = text.slice(0, -1);
+        span.textContent = text;
+        width = span.offsetWidth;
+      }
+    }
+  });
+  // note: intentionally NOT resetting rotation/transform here.
+  // buildWheel gets called again on every spin (to refresh labels/colors),
+  // and resetting rotation each time desynced the JS-tracked angle from
+  // what was actually rendered, causing repeat spins to barely move.
+  // spinWheelTo() already treats a missing dataset.rotation as 0 for the
+  // very first spin, so nothing needs to be set here.
+}
+
+function spinWheelTo(el, index, total, cb){
+  const slice = 360/total;
+  const current = parseFloat(el.dataset.rotation || 0);
+  const targetOffset = 360*5 + (360 - (index*slice + slice/2)) ;
+  const newRotation = current - (current % 360) + targetOffset;
+  el.style.transform = `rotate(${newRotation}deg)`;
+  el.dataset.rotation = newRotation;
+  setTimeout(cb, 3200);
+}
+
+function weightedPick(items){
+  const total = items.reduce((s,i) => s + i.weight, 0);
+  let r = Math.random()*total;
+  for(const it of items){
+    if(r < it.weight) return it;
+    r -= it.weight;
+  }
+  return items[items.length-1];
+}
+
+function pickDifferentIndex(total, lastIdx){
+  if (total <= 1) return 0;
+  let idx = Math.floor(Math.random() * total);
+  let tries = 0;
+  while (idx === lastIdx && tries < 10) {
+    idx = Math.floor(Math.random() * total);
+    tries++;
+  }
+  return idx;
+}
+
+/* ---------------- YES / NO ---------------- */
+const yesnoLabels = ['예스','노','예스','노','예스','노','예스','노','예스','노'];
+const yesMessages = [
+  '운명이 예스라고 답했습니다',
+  '고민 끝, 지금 바로 실행하세요',
+  '더 볼 것도 없어요, 예스!',
+  '오늘의 결정: 하는 걸로'
+];
+const noMessages = [
+  '운명이 노라고 답했습니다',
+  '오늘은 아닌 것 같아요',
+  '다음 기회를 기다려보세요',
+  '오늘의 결정: 안 하는 걸로'
+];
+let yesnoHistory = [];
+buildWheel(document.getElementById('wheel-yesno'), yesnoLabels);
+
+function spinYesNo(){
+  const btn = document.getElementById('btn-yesno');
+  btn.disabled = true;
+  document.getElementById('result-yesno').classList.remove('show');
+  const idx = Math.floor(Math.random()*yesnoLabels.length);
+  const isYes = yesnoLabels[idx] === '예스';
+  spinWheelTo(document.getElementById('wheel-yesno'), idx, yesnoLabels.length, () => {
+    const msg = isYes ? yesMessages[Math.floor(Math.random()*yesMessages.length)] : noMessages[Math.floor(Math.random()*noMessages.length)];
+    document.getElementById('yesno-emoji').textContent = isYes ? '✅' : '❌';
+    document.getElementById('yesno-main').textContent = isYes ? 'YES' : 'NO';
+    document.getElementById('yesno-sub').textContent = msg;
+    document.getElementById('result-yesno').classList.add('show');
+    yesnoHistory.unshift(isYes ? 'YES · ' + msg : 'NO · ' + msg);
+    yesnoHistory = yesnoHistory.slice(0,4);
+    renderHistory('history-yesno', yesnoHistory);
+    btn.disabled = false;
+  });
+}
+
+function renderHistory(id, arr){
+  const wrap = document.getElementById(id + '-wrap');
+  const list = document.getElementById(id);
+  if(arr.length === 0){ wrap.style.display='none'; return; }
+  wrap.style.display='block';
+  list.innerHTML = arr.map(t => `<div class="history-item">${t}</div>`).join('');
+}
+
+/* ---------------- FOOD ---------------- */
+const foodData = {
+  '한식': ['김치찌개','된장찌개','제육볶음','비빔밥','순두부찌개','불고기','냉면','삼겹살','돌솥밥','찜','만두','김치볶음밥','전','죽','육개장','샤브샤브'],
+  '중식': ['짜장면','짬뽕','탕수육','마라탕','볶음밥','양장피','고추잡채','마파두부','훠궈','동파육','새우칠리','유산슬','팔보채','하얀짬뽕','라조기','짜장밥','짬뽕밥','버섯덮밥','난자완스','쟁반짜장','간짜장'],
+  '일식': ['초밥','돈카츠','라멘','우동','규동','오코노미야키','텐동','소바','덴푸라','돈부리','스키야키','카레','가라아게','야키토리','야키니쿠','사시미','찬코나베','오니기리','우나기노 가바야키','니자카나','부타노 쇼가야키','가쓰동','다코야키','다마고야키','다마고가케 고항'],
+  '양식': ['파스타','피자','스테이크','리조또','샐러드','버거','감바스','폭찹','햄버거','도넛','빵','파이','빠에야','시리얼'],
+  '분식': ['떡볶이','김밥','순대','튀김','라면','쫄면','칼국수','국수','어묵'],
+  '야식': ['치킨','족발','보쌈','피자','곱창','회','컵라면','짜파게티','햄버거','도넛']
+};
+let currentFoodCat = '한식';
+const foodChipsEl = document.getElementById('food-chips');
+Object.keys(foodData).forEach((cat,i) => {
+  const chip = document.createElement('div');
+  chip.className = 'chip' + (i===0 ? ' active':'');
+  chip.textContent = cat;
+  chip.onclick = () => {
+    currentFoodCat = cat;
+    [...foodChipsEl.children].forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    buildWheel(document.getElementById('wheel-food'), foodData[cat]);
+    document.getElementById('result-food').classList.remove('show');
+  };
+  foodChipsEl.appendChild(chip);
+});
+buildWheel(document.getElementById('wheel-food'), foodData[currentFoodCat]);
+
+const foodCategories = Object.keys(foodData);
+buildWheel(document.getElementById('wheel-food-category'), foodCategories);
+
+function spinFoodCategory(){
+  const btn = document.getElementById('btn-food-category');
+  btn.disabled = true;
+  const idx = Math.floor(Math.random()*foodCategories.length);
+  spinWheelTo(document.getElementById('wheel-food-category'), idx, foodCategories.length, () => {
+    const picked = foodCategories[idx];
+    currentFoodCat = picked;
+    [...foodChipsEl.children].forEach(c => c.classList.toggle('active', c.textContent === picked));
+    buildWheel(document.getElementById('wheel-food'), foodData[picked]);
+    document.getElementById('result-food').classList.remove('show');
+    btn.textContent = picked + ' 당첨! 아래에서 메뉴를 돌려보세요';
+    btn.disabled = false;
+    setTimeout(() => { btn.textContent = '종류 룰렛 먼저 돌리기'; }, 2500);
+  });
+}
+
+const foodMessages = [
+  '오늘 저녁은 이걸로 정해졌어요',
+  '더 고민하지 마세요, 정답은 이거예요',
+  '이 메뉴가 당신을 기다리고 있어요',
+  '룰렛이 확신에 차서 골랐어요'
+];
+function spinFood(){
+  const btn = document.getElementById('btn-food');
+  btn.disabled = true;
+  document.getElementById('result-food').classList.remove('show');
+  const list = foodData[currentFoodCat];
+  const idx = Math.floor(Math.random()*list.length);
+  spinWheelTo(document.getElementById('wheel-food'), idx, list.length, () => {
+    document.getElementById('food-main').textContent = list[idx];
+    document.getElementById('food-sub').textContent = foodMessages[Math.floor(Math.random()*foodMessages.length)];
+    document.getElementById('result-food').classList.add('show');
+    btn.disabled = false;
+  });
+}
+
+/* ---------------- PEOPLE ROULETTE ---------------- */
+let peopleCount = 2;
+let peopleHistory = [];
+let lastPeoplePickedIdx = -1;
+function changePeopleCount(delta){
+  const next = peopleCount + delta;
+  if(next < 2 || next > 12) return;
+  peopleCount = next;
+  document.getElementById('people-count-label').textContent = peopleCount + '명';
+  renderNameInputs();
+}
+
+function renderNameInputs(){
+  const wrap = document.getElementById('name-inputs');
+  wrap.innerHTML = '';
+  for(let i=0;i<peopleCount;i++){
+    const row = document.createElement('div');
+    row.className = 'name-input-row';
+    row.innerHTML = `<div class="swatch" style="background:${wheelColors[i % wheelColors.length]}"></div>
+      <input type="text" placeholder="이름 ${i+1}" data-idx="${i}" value="">`;
+    wrap.appendChild(row);
+  }
+  updatePeopleWheelPreview();
+}
+
+function updatePeopleWheelPreview(){
+  const inputs = [...document.querySelectorAll('#name-inputs input')];
+  const labels = inputs.map((inp,i) => inp.value.trim() || ('이름'+(i+1)));
+  buildWheel(document.getElementById('wheel-people'), labels);
+}
+document.getElementById('name-inputs').addEventListener('input', updatePeopleWheelPreview);
+
+renderNameInputs();
+
+function spinPeople(){
+  const btn = document.getElementById('btn-people');
+  btn.disabled = true;
+  document.getElementById('result-people').classList.remove('show');
+  const inputs = [...document.querySelectorAll('#name-inputs input')];
+  const names = inputs.map((inp,i) => inp.value.trim() || ('이름'+(i+1)));
+  buildWheel(document.getElementById('wheel-people'), names);
+
+  const idx = pickDifferentIndex(names.length, lastPeoplePickedIdx);
+  lastPeoplePickedIdx = idx;
+  const picked = { name: names[idx] };
+
+  spinWheelTo(document.getElementById('wheel-people'), idx, names.length, () => {
+    const msg = narrativeFor(picked.name);
+    document.getElementById('people-main').textContent = picked.name;
+    document.getElementById('people-sub').textContent = msg;
+    document.getElementById('result-people').classList.add('show');
+    peopleHistory.unshift(picked.name + ' · ' + msg);
+    peopleHistory = peopleHistory.slice(0,5);
+    renderHistory('history-people', peopleHistory);
+    btn.disabled = false;
+  });
+}
+
+const narrativePool = [
+  '{name}, 오늘 커피값 쏘는 영광을 얻었습니다 ☕',
+  '운명이 {name}을(를) 정확히 지목했습니다',
+  '짜잔, {name} 당첨! 각오하세요',
+  '{name}, 이번 판은 당신 차례예요',
+  '모두의 시선이 {name}에게 집중됩니다',
+  '{name}, 오늘의 주인공은 바로 당신',
+  '피할 수 없었던 {name}의 운명'
+];
+function narrativeFor(name){
+  const t = narrativePool[Math.floor(Math.random()*narrativePool.length)];
+  return t.replace('{name}', name);
+}
+
+/* ---------------- TRUTH OR DARE ---------------- */
+const truthQuestions = [
+  '최근에 가장 크게 웃었던 순간은?','지금 가장 만나고 싶은 사람은?','최근 가장 후회했던 선택은?','지금 핸드폰 배경화면은 뭔가요?',
+  '가장 최근에 한 거짓말은?','요즘 가장 큰 고민은?','첫사랑은 몇 살 때였나요?','지금 이 자리에서 가장 어색한 사람은?',
+  '최근에 가장 부끄러웠던 순간은?','남들이 모르는 나만의 습관은?','인생에서 가장 잘한 선택은?','최근에 몰래 운 적 있나요?',
+  '지금 제일 하고 싶은 게 뭔가요?','최근 가장 많이 한 검색어는?','자신의 흑역사 하나 공개하기','최근에 가장 뿌듯했던 순간은?',
+  '오늘 컨디션을 점수로 매긴다면?','이 자리에서 가장 닮고 싶은 사람은?','최근에 산 것 중 제일 아까운 지출은?','지금 가장 걱정되는 일은?',
+  '최근 꿈에 나온 사람은?','어릴 때 꿈꾸던 직업은?','최근 가장 크게 싸운 적은 언제인가요?','스스로 생각하는 나의 장점은?',
+  '스스로 생각하는 나의 단점은?','최근에 질투 났던 순간은?','이 중 누군가와 하루를 바꿀 수 있다면 누구?','최근 가장 감동받은 순간은?',
+  '지금까지 받은 선물 중 최고는?','최근 홧김에 산 물건은?','요즘 제일 자주 듣는 노래는?','최근에 누군가에게 서운했던 적은?',
+  '나만 아는 이 자리 사람의 비밀 하나는?','최근에 가장 크게 당황했던 순간은?','지금 이 순간 솔직한 기분은?','최근에 몰래 한 일은?',
+  '인생 최고의 실수는?','오늘 하루 점수를 매긴다면 몇 점?','최근 가장 많이 미룬 일은?','지금 화면을 켜서 최근 사진 보여주기',
+  '최근에 누군가를 오해했던 적은?','나에게 가장 큰 영향을 준 사람은?','최근 가장 스트레스 받았던 일은?','이 자리에서 가장 편한 사람은?',
+  '최근 가장 무모했던 결정은?','나만의 이상한 습관 하나는?','최근 가장 놀랐던 소식은?','어릴 때 가장 창피했던 기억은?',
+  '지금 가장 갖고 싶은 것은?','최근에 눈치 봤던 순간은?'
+];
+const dareMissions = [
+  '지금 바로 셀카 찍어서 단체방에 보내기','옆 사람 성대모사 하기','지금 기분을 몸짓으로만 표현하기','즉석에서 삼행시 짓기',
+  '1분 동안 웃음 참기','가장 최근 연락한 사람에게 이모지 하나만 보내기','지금 자리에서 스트레칭 10초 하기','애교 섞인 목소리로 자기소개하기',
+  '좋아하는 노래 한 소절 부르기','옆 사람 칭찬 3가지 말하기','동물 소리 성대모사 하기','지금 이 순간을 뉴스처럼 보도하기',
+  '오른손으로 왼쪽 귀 만지면서 자기 이름 말하기','30초 동안 눈 마주치고 안 웃기','사투리로 자기소개하기','지금 기분을 색깔로 표현하고 이유 설명하기',
+  '즉석에서 랩 8마디 만들기','옆 사람 흉내내며 걷기','최근 찍은 사진 아무거나 보여주기','5초 안에 웃긴 표정 짓기',
+  '좋아하는 캐릭터 성대모사 하기','손을 안 쓰고 물 한 모금 마시기','눈을 감고 옆 사람 얼굴 그려보기','지금 부르고 싶은 사람에게 안부 문자 보내기',
+  '팔로 큰 하트 그리기','이 자리 사람 한 명 정해서 3분간 매니저처럼 챙기기','즉석 광고 카피 만들어 발표하기','눈 감고 10초 동안 균형 잡기',
+  '옆 사람과 손바닥 마주치며 리듬 만들기','지금 생각나는 아무 노래나 허밍으로 부르기','이 모임 이름을 새로 짓고 발표하기','30초 동안 상대방 리액션 봇 되어주기',
+  '최근 통화 목록 아무거나 공개하기','발로 서명하듯 이름 쓰기','즉석 건배사 만들어서 외치기','지금 표정으로 감정 릴레이 하기',
+  '상대방의 사투리 따라해보기','눈 감고 냄새만으로 물건 맞히기','지금 기분을 시로 표현하기 (2줄 이상)','옆 사람 말투 3초간 따라하기',
+  '아무 노래에 맞춰 막춤 5초 추기','최근 저장한 이모지·짤 아무거나 공개하기','지금 생각나는 유행어 3개 말하기','팔벌려뛰기 5개 하기',
+  '상대방 이름으로 삼행시 짓기','이 자리에서 제일 웃긴 사람 뽑고 이유 말하기','최근 앨범에서 3번째 사진 공개하기','지금 생각나는 축하 인사 화려하게 하기',
+  '눈 감고 박수 3번 정확히 치기','마무리 인사를 아나운서처럼 하기'
+];
+function spinTruth(){
+  const btn = document.getElementById('btn-truth');
+  const coin = document.getElementById('coin');
+  btn.disabled = true;
+  document.getElementById('result-truth').classList.remove('show');
+  coin.classList.remove('spinning');
+  void coin.offsetWidth;
+  coin.classList.add('spinning');
+  const isTruth = Math.random() < 0.5;
+  setTimeout(() => {
+    coin.textContent = isTruth ? '진실' : '거짓';
+    const pool = isTruth ? truthQuestions : dareMissions;
+    const pick = pool[Math.floor(Math.random()*pool.length)];
+    document.getElementById('truth-main').textContent = isTruth ? '🗣️ 진실' : '🔥 미션(거짓)';
+    document.getElementById('truth-sub').textContent = pick;
+    document.getElementById('result-truth').classList.add('show');
+    btn.disabled = false;
+  }, 1100);
+}
+
+/* ---------------- FORTUNE ---------------- */
+const westernSets = [
+  {era:'고대 이집트 파라오 시대', role:'신전 제사장'},
+  {era:'고대 이집트 파라오 시대', role:'벽화를 그리던 화공'},
+  {era:'고대 그리스 도시국가 시절', role:'철학을 논하던 학자'},
+  {era:'고대 그리스 도시국가 시절', role:'올림픽에 나가던 육상 선수'},
+  {era:'고대 로마 제국 시절', role:'원로원의 서기관'},
+  {era:'고대 로마 제국 시절', role:'검투사를 훈련시키던 조련사'},
+  {era:'바이킹 시대 스칸디나비아', role:'배를 이끌던 항해사'},
+  {era:'바이킹 시대 스칸디나비아', role:'대장간의 무기공'},
+  {era:'중세 유럽 봉건시대', role:'성을 지키던 기사'},
+  {era:'중세 유럽 봉건시대', role:'수도원의 필사수도사'},
+  {era:'비잔티움 제국 시절', role:'궁정 모자이크 화가'},
+  {era:'비잔티움 제국 시절', role:'콘스탄티노플의 상인'},
+  {era:'오스만 제국 전성기', role:'궁정 세밀화가'},
+  {era:'오스만 제국 전성기', role:'향신료를 팔던 대상인'},
+  {era:'르네상스 시기 이탈리아', role:'공방을 운영하던 화가'},
+  {era:'르네상스 시기 이탈리아', role:'후원 귀족가의 서기'},
+  {era:'튜더 왕조 시절 잉글랜드', role:'궁정 귀족'},
+  {era:'튜더 왕조 시절 잉글랜드', role:'왕실 재봉사'},
+  {era:'엘리자베스 시대 잉글랜드', role:'극단의 배우'},
+  {era:'엘리자베스 시대 잉글랜드', role:'항해를 떠난 선장'},
+  {era:'절대왕정 시기 프랑스 베르사유', role:'궁정 시녀'},
+  {era:'절대왕정 시기 프랑스 베르사유', role:'정원을 가꾸던 정원사'},
+  {era:'대항해시대 스페인', role:'신대륙을 향하던 항해사'},
+  {era:'대항해시대 스페인', role:'왕실의 지도 제작자'},
+  {era:'네덜란드 황금시대', role:'튤립을 거래하던 상인'},
+  {era:'네덜란드 황금시대', role:'정물화를 그리던 화가'},
+  {era:'합스부르크 왕가 시절 오스트리아', role:'궁정 음악가'},
+  {era:'합스부르크 왕가 시절 오스트리아', role:'귀족가의 가정교사'},
+  {era:'조지 왕조 시절 잉글랜드', role:'신사 계급의 지주'},
+  {era:'조지 왕조 시절 잉글랜드', role:'도자기를 굽던 장인'},
+  {era:'나폴레옹 시대 프랑스', role:'군대의 장교'},
+  {era:'나폴레옹 시대 프랑스', role:'파리의 양장점 주인'},
+  {era:'빅토리아 시대 잉글랜드', role:'신사'},
+  {era:'빅토리아 시대 잉글랜드', role:'증기기관을 다루던 기술자'},
+  {era:'벨 에포크 시기 파리', role:'살롱을 열던 예술 후원가'},
+  {era:'벨 에포크 시기 파리', role:'카페의 시인'},
+  {era:'러시아 제국 시절', role:'궁정 귀족'},
+  {era:'러시아 제국 시절', role:'겨울궁전의 화가'},
+  {era:'고대 페르시아 제국', role:'대상을 이끌던 상인'},
+  {era:'고대 페르시아 제국', role:'왕궁의 천문학자'},
+  {era:'잉카 제국 시절', role:'태양신을 섬기던 제사장'},
+  {era:'아즈텍 제국 시절', role:'전사 계급의 무사'},
+  {era:'고대 바빌로니아', role:'별을 관측하던 천문학자'},
+  {era:'켈트족 시절 브리튼', role:'부족을 이끌던 족장'},
+  {era:'앵글로색슨 시대 잉글랜드', role:'수도원의 필경사'},
+  {era:'노르만 정복 시기 잉글랜드', role:'성을 관리하던 영주'},
+  {era:'십자군 원정 시절', role:'성지를 향하던 기사'},
+  {era:'한자동맹 시절 북유럽', role:'무역선을 몰던 상인'},
+  {era:'베네치아 공화국 시절', role:'유리 공예 장인'},
+  {era:'피렌체 공화국 시절', role:'은행을 운영하던 상인'},
+  {era:'스위스 연방 초기', role:'시계를 만들던 장인'},
+  {era:'스코틀랜드 왕국 시절', role:'성을 지키던 기사'},
+  {era:'아일랜드 켈트 시절', role:'이야기를 전하던 음유시인'},
+  {era:'헝가리 왕국 시절', role:'궁정 마부'},
+  {era:'폴란드 왕국 전성기', role:'귀족가의 서기'},
+  {era:'프로이센 왕국 시절', role:'군악대의 연주자'},
+  {era:'스웨덴 왕국 전성기', role:'광산을 관리하던 기술자'},
+  {era:'덴마크 왕국 시절', role:'항구의 조선공'},
+  {era:'신성로마제국 시절', role:'궁정 연금술사'},
+  {era:'초기 미국 식민지 시절', role:'개척지의 대장장이'}
+];
+
+const easternSets = [
+  {era:'고조선 시절', role:'제사를 주관하던 제사장'},
+  {era:'고조선 시절', role:'청동기를 다루던 장인'},
+  {era:'고구려 전성기', role:'국경을 지키던 무사'},
+  {era:'고구려 전성기', role:'벽화를 그리던 화공'},
+  {era:'백제 시절', role:'도읍의 도공'},
+  {era:'백제 시절', role:'불상을 조각하던 장인'},
+  {era:'신라 화랑도 시절', role:'화랑'},
+  {era:'신라 화랑도 시절', role:'향가를 짓던 시인'},
+  {era:'가야 연맹 시절', role:'철기를 다루던 대장장이'},
+  {era:'발해 전성기', role:'사신을 수행하던 통역관'},
+  {era:'발해 전성기', role:'도자기를 굽던 도공'},
+  {era:'통일신라 시절', role:'불경을 필사하던 승려'},
+  {era:'통일신라 시절', role:'석탑을 세우던 석공'},
+  {era:'고려 전기', role:'과거를 준비하던 유생'},
+  {era:'고려 전기', role:'청자를 빚던 도공'},
+  {era:'고려 후기', role:'개경의 상인'},
+  {era:'고려 후기', role:'사신으로 파견된 관리'},
+  {era:'조선 건국 초기', role:'새 도읍을 설계하던 관리'},
+  {era:'조선 세종 재위 시절', role:'학문을 연구하던 학자'},
+  {era:'조선 세종 재위 시절', role:'궁중 화원'},
+  {era:'조선 중기', role:'지방의 서당훈장'},
+  {era:'조선 중기', role:'한양의 포목상'},
+  {era:'임진왜란 전후', role:'의병을 이끌던 의병장'},
+  {era:'임진왜란 전후', role:'군량을 관리하던 관리'},
+  {era:'병자호란 전후', role:'국경을 지키던 장수'},
+  {era:'병자호란 전후', role:'피난민을 돌보던 의원'},
+  {era:'조선 후기', role:'판소리를 하던 소리꾼'},
+  {era:'조선 후기', role:'장터를 떠돌던 보부상'},
+  {era:'조선 후기 실학 시절', role:'실용 학문을 연구하던 학자'},
+  {era:'조선 후기', role:'민화를 그리던 화가'},
+  {era:'대한제국 개화기', role:'신문물을 배우던 유학생'},
+  {era:'대한제국 개화기', role:'사진관을 운영하던 사진사'},
+  {era:'고대 중국 춘추전국시대', role:'제후국을 떠돌던 유세객'},
+  {era:'진나라 시절', role:'만리장성을 쌓던 기술자'},
+  {era:'한나라 시절', role:'비단길을 오가던 상인'},
+  {era:'당나라 전성기', role:'장안의 시인'},
+  {era:'당나라 전성기', role:'궁정 악사'},
+  {era:'송나라 시절', role:'도자기를 굽던 장인'},
+  {era:'송나라 시절', role:'서화를 그리던 문인화가'},
+  {era:'원나라 시절', role:'역참을 관리하던 관리'},
+  {era:'명나라 시절', role:'자금성의 궁중 화가'},
+  {era:'명나라 시절', role:'바다를 오가던 무역상'},
+  {era:'청나라 시절', role:'비단을 짜던 장인'},
+  {era:'청나라 시절', role:'과거시험을 준비하던 선비'},
+  {era:'헤이안 시대 일본', role:'궁중의 시인'},
+  {era:'헤이안 시대 일본', role:'귀족가의 시녀'},
+  {era:'가마쿠라 막부 시절 일본', role:'무사'},
+  {era:'무로마치 막부 시절 일본', role:'다도를 가르치던 다인'},
+  {era:'에도 시대 일본', role:'목판화를 새기던 장인'},
+  {era:'에도 시대 일본', role:'거리를 떠돌던 상인'},
+  {era:'류큐 왕국 시절', role:'무역선을 몰던 항해사'},
+  {era:'몽골 초원 시절', role:'말을 기르던 유목민'},
+  {era:'티베트 고원 시절', role:'경전을 필사하던 승려'},
+  {era:'베트남 리 왕조 시절', role:'궁중 관리'},
+  {era:'태국 아유타야 왕조 시절', role:'무역항의 상인'},
+  {era:'크메르 제국 앙코르 시절', role:'사원을 짓던 석공'},
+  {era:'인도 무굴 제국 시절', role:'세밀화를 그리던 화가'},
+  {era:'인도 무굴 제국 시절', role:'궁정 시인'},
+  {era:'실크로드 시절', role:'대상을 이끌던 상인'},
+  {era:'고대 동남아 해상왕국 시절', role:'향신료를 거래하던 무역상'}
+];
+
+const traits = ['정이 많고 눈물이 많았던','고집이 세고 승부욕이 강했던','호기심이 많아 늘 떠돌아다니던','말수는 적지만 속이 깊었던','재치가 넘쳐 인기가 많았던','책임감이 강해 늘 앞장서던'];
+
+const epilogueMap = [
+  { keys:['화가','화공','화원','화랑','문인화가','세밀화가','벽화'], phrases:[
+      '그래서 지금도 예쁜 걸 보면 사진부터 찍고 싶어지지 않나요?',
+      '색이나 그림 앞에서 유독 오래 머무는 편이지 않나요?',
+      '방 안 물건 배치에 은근히 신경 쓰는 편 아닌가요?'
+  ]},
+  { keys:['상인','무역상','대상','포목상','보부상'], phrases:[
+      '물건 살 때 가격 흥정을 은근히 즐기지 않나요?',
+      '여행지에서 시장 구경을 빼놓지 않는 편 아닌가요?',
+      '뭔가를 팔거나 소개하는 데 재능이 있다는 말, 들어보지 않았나요?'
+  ]},
+  { keys:['학자','유생','선비','철학자','유세객'], phrases:[
+      '궁금한 게 생기면 끝까지 파고드는 편 아닌가요?',
+      '책이나 자료 정리하는 걸 은근히 좋아하지 않나요?',
+      '토론할 때 논리적으로 따지는 걸 즐기지 않나요?'
+  ]},
+  { keys:['기사','무사','장수','전사','의병','군인','장교','영주','족장'], phrases:[
+      '위기 상황에서 오히려 침착해지는 편 아닌가요?',
+      '누군가를 지켜야 한다는 책임감을 자주 느끼지 않나요?',
+      '몸으로 부딪히는 운동을 은근히 좋아하지 않나요?'
+  ]},
+  { keys:['시인','음유시인','악사','연주자','소리꾼'], phrases:[
+      '노래나 음악을 들으면 가사부터 곱씹어보지 않나요?',
+      '감정이 벅찰 때 글로 풀어내고 싶어지지 않나요?',
+      '분위기 있는 음악에 유독 약한 편 아닌가요?'
+  ]},
+  { keys:['승려','제사장','천문학자','도인','다인'], phrases:[
+      '밤하늘을 올려다보는 걸 좋아하지 않나요?',
+      '혼자만의 시간이 꼭 필요한 편 아닌가요?',
+      '눈에 안 보이는 것들에 대한 호기심이 많지 않나요?'
+  ]},
+  { keys:['장인','도공','대장장이','석공','조각','기술자','재봉사','유리 공예'], phrases:[
+      '손으로 뭔가 만드는 걸 은근히 좋아하지 않나요?',
+      '물건 하나를 사도 마감이나 디테일부터 보게 되지 않나요?',
+      '뭔가 고장 나면 직접 고쳐보고 싶어지지 않나요?'
+  ]},
+  { keys:['항해사','선장','탐험가','유목민'], phrases:[
+      '낯선 곳으로 훌쩍 떠나고 싶을 때가 많지 않나요?',
+      '지도나 여행 계획 짜는 걸 유독 좋아하지 않나요?',
+      '한곳에 오래 머무르면 답답함을 느끼지 않나요?'
+  ]}
+];
+const genericEpilogue = [
+  '그때의 성향이 지금도 어딘가에 남아있을지 몰라요.',
+  '문득 낯선 시대가 익숙하게 느껴진 적 있지 않나요?',
+  '이유 없이 끌리는 취향, 어쩌면 그 생의 흔적일지도 몰라요.'
+];
+function getEpilogue(role, rand){
+  for (const cat of epilogueMap) {
+    if (cat.keys.some(k => role.includes(k))) {
+      return cat.phrases[Math.floor(rand() * cat.phrases.length)];
+    }
+  }
+  return genericEpilogue[Math.floor(rand() * genericEpilogue.length)];
+}
+
+const lifeStages = [
+  {label:'첫 번째 생', desc:'씨를 뿌리는 생'},
+  {label:'두 번째 생', desc:'뿌린 씨에 물을 주는 생'},
+  {label:'세 번째 생', desc:'물 준 씨를 수확하는 생'},
+  {label:'네 번째 생', desc:'수확한 것들을 쓰는 생'}
+];
+
+const judgmentLines = [
+  '이 생에는 정해진 신분도, 시대도 없습니다. 오직 지금까지의 삶을 돌아보는 시간만이 있을 뿐입니다.',
+  '더 이상 주어진 시간이 없는 생. 당신은 지금까지의 모든 선택을 마주하게 됩니다.',
+  '씨를 뿌리고, 물을 주고, 수확하고, 써온 모든 것들이 이 하나의 생에서 저울에 오릅니다.',
+  '이곳에서 당신은 그 누구도 아닌, 있는 그대로의 자신으로 서 있습니다.',
+  '지나온 네 번의 생이 조용히 당신을 지켜보고 있습니다.',
+  '더는 다음 생을 준비할 필요가 없는, 마침의 시간입니다.',
+  '이 생에서는 무엇을 이루었는지가 아니라, 어떻게 살아왔는지를 묻습니다.',
+  '당신이 지나온 모든 선택들이 하나의 이야기로 완성되는 순간입니다.',
+  '시간은 더 이상 흐르지 않고, 오직 지금 이 순간만이 남아있습니다.',
+  '이 생은 시작도 끝도 없이, 그저 존재 자체로 완전합니다.'
+];
+
+const zodiacList = [
+  {name:'물병자리', symbol:'♒', range:[[1,20],[2,18]]},
+  {name:'물고기자리', symbol:'♓', range:[[2,19],[3,20]]},
+  {name:'양자리', symbol:'♈', range:[[3,21],[4,19]]},
+  {name:'황소자리', symbol:'♉', range:[[4,20],[5,20]]},
+  {name:'쌍둥이자리', symbol:'♊', range:[[5,21],[6,21]]},
+  {name:'게자리', symbol:'♋', range:[[6,22],[7,22]]},
+  {name:'사자자리', symbol:'♌', range:[[7,23],[8,22]]},
+  {name:'처녀자리', symbol:'♍', range:[[8,23],[9,22]]},
+  {name:'천칭자리', symbol:'♎', range:[[9,23],[10,22]]},
+  {name:'전갈자리', symbol:'♏', range:[[10,23],[11,21]]},
+  {name:'사수자리', symbol:'♐', range:[[11,22],[12,21]]},
+  {name:'염소자리', symbol:'♑', range:[[12,22],[1,19]]}
+];
+function getZodiac(month, day){
+  for (const z of zodiacList) {
+    const [[m1,d1],[m2,d2]] = z.range;
+    if (m1 === m2) { if (month === m1 && day >= d1 && day <= d2) return z; }
+    else if ((month === m1 && day >= d1) || (month === m2 && day <= d2)) return z;
+  }
+  return zodiacList[0];
+}
+
+function hashStringToSeed(str){
+  let hash = 5381;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) + hash) + str.charCodeAt(i);
+    hash = hash & hash;
+  }
+  return hash >>> 0;
+}
+function mulberry32(seed){
+  let a = seed;
+  return function(){
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function hasBatchim(str){
+  const code = str.charCodeAt(str.length - 1);
+  if (code < 0xAC00 || code > 0xD7A3) return false;
+  return (code - 0xAC00) % 28 !== 0;
+}
+
+function getSeasonBiasedLifeIndex(month, rand){
+  // 0=씨를 뿌리는 생(봄), 1=물 주는 생(여름), 2=수확하는 생(가을), 3=쓰는 생(겨울)
+  let seasonIndex;
+  if (month >= 3 && month <= 5) seasonIndex = 0;
+  else if (month >= 6 && month <= 8) seasonIndex = 1;
+  else if (month >= 9 && month <= 11) seasonIndex = 2;
+  else seasonIndex = 3;
+  const weights = [1, 1, 1, 1];
+  weights[seasonIndex] = 3; // born in that season leans (not locks) toward the matching life stage
+  const total = weights.reduce((a,b) => a+b, 0);
+  let r = rand() * total;
+  for (let i = 0; i < 4; i++) {
+    if (r < weights[i]) return i;
+    r -= weights[i];
+  }
+  return seasonIndex;
+}
+
+function toggleFortuneTimeUnknown(){
+  const checked = document.getElementById('fortune-time-unknown').checked;
+  const timeInput = document.getElementById('fortune-time');
+  timeInput.disabled = checked;
+  if (checked) timeInput.value = '';
+}
+
+function renderFortuneStars(){
+  const wrap = document.getElementById('fortune-stars');
+  wrap.innerHTML = '';
+  for (let i = 0; i < 14; i++) {
+    const star = document.createElement('div');
+    star.className = 'fortune-star';
+    const size = 2 + Math.random() * 3;
+    star.style.width = size + 'px';
+    star.style.height = size + 'px';
+    star.style.left = Math.random() * 100 + '%';
+    star.style.top = Math.random() * 100 + '%';
+    star.style.animationDelay = (Math.random() * 2) + 's';
+    wrap.appendChild(star);
+  }
+}
+
+function spinFortune(){
+  const birth = document.getElementById('fortune-birth').value;
+  if (!birth) {
+    const line = document.getElementById('fortune-line');
+    line.innerHTML = '<span style="color:var(--accent-a); font-weight:700;">생년월일을 먼저 입력해주세요</span>';
+    return;
+  }
+  const timeUnknown = document.getElementById('fortune-time-unknown').checked;
+  const time = timeUnknown ? 'unknown' : document.getElementById('fortune-time').value;
+  const hometown = document.getElementById('fortune-hometown').value.trim();
+
+  const seedStr = birth + '_' + time + '_' + hometown;
+  const rand = mulberry32(hashStringToSeed(seedStr));
+
+  const [y, m, d] = birth.split('-').map(Number);
+  const zodiac = getZodiac(m, d);
+
+  const isJudgment = rand() < 0.08; // rare: ~8% chance of the special 5th life
+
+  if (isJudgment) {
+    const judgmentLine = judgmentLines[Math.floor(rand() * judgmentLines.length)];
+    window.lastFortuneResult = { zodiac, isJudgment: true, judgmentLine };
+    const line = document.getElementById('fortune-line');
+    line.style.opacity = 0;
+    renderFortuneStars();
+    setTimeout(() => {
+      line.innerHTML = `<span class="zodiac-symbol">${zodiac.symbol}</span>` +
+        `당신은 <b>${zodiac.name}</b><br/><br/>` +
+        `<b style="color:var(--accent-d);">다섯 번째, 심판의 생</b><br/>` +
+        `<span style="font-size:14px; font-weight:600; color:var(--text-muted); display:inline-block; margin-top:8px;">${judgmentLine}</span>`;
+      line.style.transition = 'opacity .4s';
+      line.style.opacity = 1;
+      document.getElementById('btn-fortune-save').classList.remove('hidden');
+    }, 250);
+    return;
+  }
+
+  const lifeIndex = getSeasonBiasedLifeIndex(m, rand);
+  const isWestern = rand() < 0.5;
+  const pool = isWestern ? westernSets : easternSets;
+  const pick = pool[Math.floor(rand() * pool.length)];
+  const trait = traits[Math.floor(rand() * traits.length)];
+  const suffix = hasBatchim(pick.role) ? '이었습니다' : '였습니다';
+  const epilogue = getEpilogue(pick.role, rand);
+  const stage = lifeStages[lifeIndex];
+
+  window.lastFortuneResult = { zodiac, isJudgment: false, stage, trait, pick, suffix, epilogue };
+
+  const line = document.getElementById('fortune-line');
+  line.style.opacity = 0;
+  renderFortuneStars();
+  setTimeout(() => {
+    line.innerHTML = `<span class="zodiac-symbol">${zodiac.symbol}</span>` +
+      `당신은 <b>${zodiac.name}</b>, 네 번의 생 중 <b>${stage.label}</b> — '${stage.desc}'을 살고 있습니다.<br/><br/>` +
+      `${trait} <b>${pick.era}</b>의 ${pick.role}${suffix}<br/><br/>` +
+      `<span style="font-size:14px; font-weight:600; color:var(--text-muted);">${epilogue}</span>`;
+    line.style.transition = 'opacity .4s';
+    line.style.opacity = 1;
+    document.getElementById('btn-fortune-save').classList.remove('hidden');
+  }, 250);
+}
+
+function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight){
+  const words = text.split(' ');
+  let line = '';
+  let curY = y;
+  for (let n = 0; n < words.length; n++) {
+    const testLine = line + words[n] + ' ';
+    if (ctx.measureText(testLine).width > maxWidth && n > 0) {
+      ctx.fillText(line, x, curY);
+      line = words[n] + ' ';
+      curY += lineHeight;
+    } else {
+      line = testLine;
+    }
+  }
+  ctx.fillText(line, x, curY);
+  return curY;
+}
+
+function downloadFortuneCardImage(){
+  const r = window.lastFortuneResult;
+  if (!r) return;
+  const canvas = document.createElement('canvas');
+  canvas.width = 640; canvas.height = 820;
+  const ctx = canvas.getContext('2d');
+
+  const grad = ctx.createLinearGradient(0, 0, 0, 820);
+  grad.addColorStop(0, '#2a2340');
+  grad.addColorStop(1, '#14121f');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 640, 820);
+
+  ctx.fillStyle = '#ffd166';
+  for (let i = 0; i < 50; i++) {
+    const x = Math.random() * 640, y = Math.random() * 820, rad = Math.random() * 2 + 0.5;
+    ctx.globalAlpha = Math.random() * 0.7 + 0.2;
+    ctx.beginPath(); ctx.arc(x, y, rad, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  ctx.strokeStyle = 'rgba(255,209,102,0.35)';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(20, 20, 600, 780);
+
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#ffd166';
+  ctx.font = '600 20px Pretendard, sans-serif';
+  ctx.fillText('전생 감정 결과', 320, 90);
+
+  ctx.font = '700 80px Pretendard, sans-serif';
+  ctx.fillText(r.zodiac.symbol, 320, 200);
+
+  ctx.font = '700 26px Pretendard, sans-serif';
+  ctx.fillStyle = '#f4f1fa';
+  ctx.fillText(r.zodiac.name, 320, 245);
+
+  if (r.isJudgment) {
+    ctx.font = '700 30px Pretendard, sans-serif';
+    ctx.fillStyle = '#ffd166';
+    ctx.fillText('다섯 번째, 심판의 생', 320, 340);
+    ctx.font = '500 18px Pretendard, sans-serif';
+    ctx.fillStyle = '#9c96b8';
+    wrapCanvasText(ctx, r.judgmentLine, 320, 410, 520, 28);
+  } else {
+    ctx.font = '600 17px Pretendard, sans-serif';
+    ctx.fillStyle = '#9c96b8';
+    let y = wrapCanvasText(ctx, `네 번의 생 중 ${r.stage.label} — '${r.stage.desc}'`, 320, 300, 520, 25);
+
+    ctx.font = '700 23px Pretendard, sans-serif';
+    ctx.fillStyle = '#f4f1fa';
+    y = wrapCanvasText(ctx, `${r.trait} ${r.pick.era}의 ${r.pick.role}${r.suffix}`, 320, y + 60, 520, 33);
+
+    ctx.font = '500 17px Pretendard, sans-serif';
+    ctx.fillStyle = '#9c96b8';
+    wrapCanvasText(ctx, r.epilogue, 320, y + 55, 520, 25);
+  }
+
+  ctx.font = '600 14px Pretendard, sans-serif';
+  ctx.fillStyle = '#7c5cff';
+  ctx.fillText('포춘앤룰렛 · 전생 알아보기', 320, 780);
+
+  const link = document.createElement('a');
+  link.download = '나의_전생.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+/* ---------------- 생의 궁합 ---------------- */
+const compatRelations = [
+  '스승과 제자', '오랜 친구', '이루지 못한 첫사랑', '서로를 견제하던 라이벌',
+  '한 부모 아래 자란 형제자매', '주인과 충직한 부하', '함께 여행하던 동료 상인',
+  '이웃 마을에서 자란 소꿉친구', '전쟁터에서 서로를 구했던 전우', '서로 다른 나라의 사신으로 만난 인연',
+  '같은 스승 밑에서 동문수학한 사이', '우연히 스쳐간 나그네', '오랜 세월 편지를 주고받은 벗',
+  '함께 대업을 이루려던 동지', '서로의 비밀을 지켜주던 절친', '정략으로 얽힌 정치적 동맹',
+  '우연히 마주친 은인과 은혜를 입은 사람', '신분을 뛰어넘어 몰래 만나던 연인',
+  '오랫동안 티격태격하던 이웃', '함께 예술을 논하던 벗'
+];
+function toggleCompat(){
+  const panel = document.getElementById('compat-panel');
+  const willShow = panel.classList.contains('hidden');
+  panel.classList.toggle('hidden', !willShow);
+  document.getElementById('compat-switch').classList.toggle('on', willShow);
+}
+function checkCompat(){
+  const birthA = document.getElementById('fortune-birth').value;
+  const birthB = document.getElementById('compat-birth').value;
+  if (!birthA || !birthB) {
+    document.getElementById('compat-result-card').classList.add('show');
+    document.getElementById('compat-result').innerHTML = '<span style="color:var(--accent-a);">두 사람의 생년월일을 모두 입력해주세요</span>';
+    return;
+  }
+  const pair = [birthA, birthB].sort().join('_');
+  const rand = mulberry32(hashStringToSeed(pair));
+  const relation = compatRelations[Math.floor(rand() * compatRelations.length)];
+  const resultEl = document.getElementById('compat-result');
+  resultEl.textContent = `두 사람은 전생에 ${relation} 사이였습니다`;
+  document.getElementById('compat-result-card').classList.add('show');
+}
+
+/* ---------------- FREE ROULETTE (custom slots) ---------------- */
+let freeCount = 4;
+function changeFreeCount(delta){
+  const next = freeCount + delta;
+  if(next < 2 || next > 12) return;
+  freeCount = next;
+  renderFreeInputs();
+}
+function renderFreeInputs(){
+  document.getElementById('free-count-label').textContent = freeCount + '칸';
+  const wrap = document.getElementById('free-inputs');
+  const existing = [...wrap.querySelectorAll('input')].map(i => i.value);
+  wrap.innerHTML = '';
+  for(let i=0;i<freeCount;i++){
+    const row = document.createElement('div');
+    row.className = 'name-input-row';
+    const val = existing[i] || '';
+    row.innerHTML = `<div class="swatch" style="background:${wheelColors[i % wheelColors.length]}"></div>
+      <input type="text" placeholder="항목 ${i+1}" data-idx="${i}" value="${val.replace(/"/g,'&quot;')}">`;
+    wrap.appendChild(row);
+  }
+  document.getElementById('result-free').classList.remove('show');
+  updateFreeWheelPreview();
+}
+function updateFreeWheelPreview(){
+  const inputs = [...document.querySelectorAll('#free-inputs input')];
+  const labels = inputs.map((inp,i) => inp.value.trim() || ('항목'+(i+1)));
+  buildWheel(document.getElementById('wheel-free'), labels);
+}
+document.getElementById('free-inputs').addEventListener('input', updateFreeWheelPreview);
+renderFreeInputs();
+
+let lastFreePickedIdx = -1;
+function spinFree(){
+  const btn = document.getElementById('btn-free');
+  btn.disabled = true;
+  document.getElementById('result-free').classList.remove('show');
+  const inputs = [...document.querySelectorAll('#free-inputs input')];
+  const labels = inputs.map((inp,i) => inp.value.trim() || ('항목'+(i+1)));
+  buildWheel(document.getElementById('wheel-free'), labels);
+  const idx = pickDifferentIndex(labels.length, lastFreePickedIdx);
+  lastFreePickedIdx = idx;
+  spinWheelTo(document.getElementById('wheel-free'), idx, labels.length, () => {
+    document.getElementById('free-main').textContent = labels[idx];
+    document.getElementById('result-free').classList.add('show');
+    btn.disabled = false;
+  });
+}
+
+/* ---------------- FINGER TAP PICK ---------------- */
+const fingerArea = document.getElementById('finger-area');
+const fingerTouches = new Map(); // identifier -> element
+let fingerLocked = false;
+
+function getClampedXY(clientX, clientY){
+  const rect = fingerArea.getBoundingClientRect();
+  const margin = 30;
+  let x = clientX - rect.left;
+  let y = clientY - rect.top;
+  if (!isFinite(x)) x = rect.width / 2;
+  if (!isFinite(y)) y = rect.height / 2;
+  x = Math.min(Math.max(x, margin), rect.width - margin);
+  y = Math.min(Math.max(y, margin), rect.height - margin);
+  return { x, y };
+}
+
+function updateFingerBadge(){
+  document.getElementById('finger-count-badge').textContent = fingerTouches.size + '명 인식됨';
+  const hint = document.getElementById('finger-hint');
+  if (fingerTouches.size > 0) {
+    hint.style.display = 'none';
+  } else {
+    hint.innerHTML = '여기에 손가락을<br/>다같이 올려주세요';
+    hint.style.display = 'block';
+  }
+}
+
+function addFingerTouch(id, clientX, clientY){
+  if (fingerTouches.has(id)) return;
+  const { x, y } = getClampedXY(clientX, clientY);
+  const dot = document.createElement('div');
+  dot.className = 'finger-dot';
+  dot.style.left = x + 'px';
+  dot.style.top = y + 'px';
+  dot.textContent = fingerTouches.size + 1;
+  fingerArea.appendChild(dot);
+  fingerTouches.set(id, dot);
+  updateFingerBadge();
+  checkAutoStart();
+}
+function moveFingerTouch(id, clientX, clientY){
+  const dot = fingerTouches.get(id);
+  if (!dot) return;
+  const { x, y } = getClampedXY(clientX, clientY);
+  dot.style.left = x + 'px';
+  dot.style.top = y + 'px';
+}
+function removeFingerTouchById(id){
+  const dot = fingerTouches.get(id);
+  if (dot) { dot.remove(); fingerTouches.delete(id); }
+  updateFingerBadge();
+  checkAutoStart();
+}
+
+let fingerCountdownInterval = null;
+function checkAutoStart(){
+  if (fingerLocked) return;
+  if (fingerTouches.size >= 2 && !fingerCountdownInterval) {
+    startAutoCountdown();
+  } else if (fingerTouches.size < 2 && fingerCountdownInterval) {
+    cancelAutoCountdown();
+  }
+}
+function startAutoCountdown(){
+  let count = 3;
+  const countdownEl = document.createElement('div');
+  countdownEl.className = 'finger-countdown';
+  countdownEl.id = 'finger-auto-countdown';
+  countdownEl.textContent = count;
+  fingerArea.appendChild(countdownEl);
+  fingerCountdownInterval = setInterval(() => {
+    count--;
+    if (count > 0) {
+      countdownEl.textContent = count;
+    } else {
+      clearInterval(fingerCountdownInterval);
+      fingerCountdownInterval = null;
+      countdownEl.remove();
+      if (fingerTouches.size >= 2) {
+        fingerLocked = true;
+        pickFingerWinner();
+      }
+    }
+  }, 700);
+}
+function cancelAutoCountdown(){
+  if (fingerCountdownInterval) { clearInterval(fingerCountdownInterval); fingerCountdownInterval = null; }
+  const el = document.getElementById('finger-auto-countdown');
+  if (el) el.remove();
+}
+
+fingerArea.addEventListener('touchstart', (e) => {
+  if (fingerLocked) return;
+  e.preventDefault();
+  for (const t of e.changedTouches) addFingerTouch(t.identifier, t.clientX, t.clientY);
+}, { passive: false });
+
+fingerArea.addEventListener('touchmove', (e) => {
+  if (fingerLocked) return;
+  e.preventDefault();
+  for (const t of e.changedTouches) moveFingerTouch(t.identifier, t.clientX, t.clientY);
+}, { passive: false });
+
+fingerArea.addEventListener('touchend', (e) => {
+  if (fingerLocked) return;
+  e.preventDefault();
+  for (const t of e.changedTouches) removeFingerTouchById(t.identifier);
+}, { passive: false });
+
+fingerArea.addEventListener('touchcancel', (e) => {
+  if (fingerLocked) return;
+  for (const t of e.changedTouches) removeFingerTouchById(t.identifier);
+}, { passive: false });
+
+// mouse fallback for desktop testing (single point only)
+fingerArea.addEventListener('mousedown', (e) => {
+  if (fingerLocked) return;
+  addFingerTouch('mouse', e.clientX, e.clientY);
+});
+window.addEventListener('mouseup', () => {
+  if (fingerLocked) return;
+  removeFingerTouchById('mouse');
+});
+
+// click fallback: some mobile browser/webview contexts don't reliably
+// deliver raw touchstart to custom listeners, but always deliver click.
+// Each tap adds one more "finger" (tap once per person instead of holding).
+let clickTapCounter = 0;
+fingerArea.addEventListener('click', (e) => {
+  if (fingerLocked) return;
+  clickTapCounter++;
+  addFingerTouch('tap-' + clickTapCounter, e.clientX, e.clientY);
+});
+
+function pickFingerWinner(){
+  document.getElementById('result-finger').classList.remove('show');
+  const entries = [...fingerTouches.entries()];
+  const [winnerId, winnerDot] = entries[Math.floor(Math.random()*entries.length)];
+  winnerDot.classList.add('winner');
+  winnerDot.textContent = '★';
+  document.getElementById('finger-main').textContent = '지목되었습니다!';
+  document.getElementById('result-finger').classList.add('show');
+
+  setTimeout(() => {
+    fingerTouches.forEach(dot => dot.remove());
+    fingerTouches.clear();
+    fingerLocked = false;
+    updateFingerBadge();
+  }, 2600);
+}
+</script>
+</body>
+</html>
